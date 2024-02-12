@@ -1,6 +1,6 @@
 ## [面试准备](http://localhost:9000/oauth2/authorize?repose_type=code&client_id=taco-admin-client&redirect_uri=http://localhost:9000/login/oauth2/code/taco-admin-client&scope=writeIngredients+deleteIngredients)
 
-### Java基础
+### Java基础（2.15）
 
 八股题库：[InterviewGuide大厂面试真题](https://top.interviewguide.cn/)
 
@@ -626,7 +626,7 @@ public @interface Repository {
 
 ### 技术栈
 
-#### Spring 基础
+#### Spring 基础（2.16）
 
 ##### <span id = "springApplicationStart">spring应用的启动</span>
 
@@ -742,7 +742,7 @@ public class SpringApplicationInitializer extends AbstractAnnotationConfigDispac
 }
 ```
 
-#### RSocket&WebSocket:
+#### （推送？）RSocket&WebSocket:
 
 #### Nginx
 
@@ -754,7 +754,7 @@ public class SpringApplicationInitializer extends AbstractAnnotationConfigDispac
 
 #### 缓存
 
-#### 数据库
+#### 数据库Mysql（2.17）
 
 #### 消息队列
 
