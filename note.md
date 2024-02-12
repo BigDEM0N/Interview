@@ -2,6 +2,10 @@
 
 ### Java基础（2.15）
 
+[黑马程序员Java零基础视频教程_上部(Java入门，含斯坦福大学练习题+力扣算法题和大厂java面试题）_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV17F411T7Ao/?spm_id_from=333.337.top_right_bar_window_custom_collection.content.click&vd_source=f67d6aae55af8412bb2b00a8e38c78b8)
+
+[比啃书效果好多了！腾讯大佬带你一周刷完Java面试八股文，高效掌握！真心别错过！_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV14P411h7Pp/?spm_id_from=333.788.top_right_bar_window_custom_collection.content.click&vd_source=f67d6aae55af8412bb2b00a8e38c78b8)
+
 八股题库：[InterviewGuide大厂面试真题](https://top.interviewguide.cn/)
 
 #### 基础
@@ -466,7 +470,13 @@ public interface Collection<E> extends Iterable<E>
 
 #### 并发&多线程(todo:2.13)
 
+[（2023最新Java进阶学习路线【涵盖初，中，高级程序员以及架构师所有内容】）_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1QB4y1v7Si?p=2&vd_source=f67d6aae55af8412bb2b00a8e38c78b8)
+
 #### JVM(todo:2.14)
+
+[2023版最新JVM调优实战，深入理解JVM虚拟机，马士兵讲解JVM教程！_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1fe411A7JQ/?spm_id_from=333.337.top_right_bar_window_custom_collection.content.click&vd_source=f67d6aae55af8412bb2b00a8e38c78b8)
+
+[【狂神说Java】JVM快速入门篇_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1iJ411d7jS/?spm_id_from=333.788.top_right_bar_window_custom_collection.content.click&vd_source=f67d6aae55af8412bb2b00a8e38c78b8)
 
 ##### JVM内存分配：
 
@@ -627,6 +637,10 @@ public @interface Repository {
 ### 技术栈
 
 #### Spring 基础（2.16）
+
+[27.【IOC】Bean 是单例的，会不会有线程安全问题_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1im411Q7tA?p=32&vd_source=f67d6aae55af8412bb2b00a8e38c78b8)
+
+[18、手写源码实现Spring扫描流程_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1z84y197Xu/?p=18&spm_id_from=pageDriver&vd_source=f67d6aae55af8412bb2b00a8e38c78b8)
 
 ##### <span id = "springApplicationStart">spring应用的启动</span>
 
