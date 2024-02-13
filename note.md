@@ -474,6 +474,8 @@ public interface Collection<E> extends Iterable<E>
 
 线程切换的概念：CPU保存现场，执行新线程，回复现场，继续执行原线程的这样一个过程
 
+**超线程：**一个ALU对应多个PC寄存器的组合，例如四核八线程
+
 ##### CAS
 
 compare and swap
@@ -572,7 +574,7 @@ JVM会检测到这样一连串的操作都对同一个对象加锁，此时就�
 ##### `synchronized`的实现过程：
 
 1. java代码：`synchronized`
-2. class代码：monitorenter monitorexit
+2. class代码：monitorenter monitorexit：这两个指令分别用于进入和退出监视器（Monitor），监视器是实现`synchronized`同步的底层机制。每个使用`synchronized`的对象都关联着一个监视器，当线程执行到`monitorenter`指令时，它将尝试获取监视器的所有权；当执行到`monitorexit`指令时，它将释放监视器。如果一个线程已经持有了监视器，其他任何线程都无法通过`monitorenter`成功获取监视器，直到持有监视器的线程执行`monitorexit`释放监视器。
 3. 执行过程中自动升级
 4. lock comxchg
 
@@ -582,9 +584,11 @@ MESI Cache一致性协议：Cache line 有四种状态 Modified,Exclusive,Shared
 
 ##### Volatile：
 
-乱序执行：
+阻止指令重排序：在运行程序时，为了提高性能，编译器和处理器可能会对指令序列进行重新排序。`volatile`可以部分防止指令重排，确保在`volatile`变量读写操作前后的程序执行顺序不被重排，从而避免在并发情况下可能出现的数据不一致问题。
 
-线程可见性：
+保证线程可见性：当一个变量被声明为`volatile`之后，线程对这个变量的读取都会从主存中进行，对这个变量的写入也会立即同步回主存，这保证了一个线程对这个变量值的修改对其他线程是立即可见的。
+
+虽然`volatile`关键字确保了变量的可见性和防止指令重排，但它并不具备互斥性
 
 #### JVM(todo:2.14)
 
@@ -735,6 +739,109 @@ public @interface Repository {
 ```
 
 ##### Annotation如何被使用？
+
+#### 设计模式
+
+##### 单例模式：
+
+###### 1. 懒汉式（线程不安全）
+
+```
+javaCopy codepublic class Singleton {
+    private static Singleton instance;
+    private Singleton() {}
+    public static Singleton getInstance() {
+        if (instance == null) {
+            instance = new Singleton();
+        }
+        return instance;
+    }
+}
+```
+
+这种实现方式最基本，但在多线程环境下不能正常工作。
+
+###### 2. 懒汉式（线程安全）
+
+```
+javaCopy codepublic class Singleton {
+    private static Singleton instance;
+    private Singleton() {}
+    public static synchronized Singleton getInstance() {
+        if (instance == null) {
+            instance = new Singleton();
+        }
+        return instance;
+    }
+}
+```
+
+通过添加`synchronized`关键字使得在多线程环境下能够工作，但降低了效率。
+
+###### 3. 饿汉式（静态常量）
+
+```
+javaCopy codepublic class Singleton {
+    private static final Singleton instance = new Singleton();
+    private Singleton() {}
+    public static Singleton getInstance() {
+        return instance;
+    }
+}
+```
+
+这种方式基于类加载机制，保证了单例只会被创建一次。它是线程安全的，但可能会导致资源浪费。
+
+###### 4. 双重检查（Double-Check）
+
+```
+javaCopy codepublic class Singleton {
+    private static volatile Singleton instance;
+    private Singleton() {}
+    public static Singleton getInstance() {
+        if (instance == null) {
+            synchronized (Singleton.class) {
+                if (instance == null) {
+                    instance = new Singleton();
+                }
+            }
+        }
+        return instance;
+    }
+}
+```
+
+这种方式既保证了懒加载，又通过双重检查和`volatile`保证了线程安全和性能。
+
+###### 5. 静态内部类
+
+```
+javaCopy codepublic class Singleton {
+    private Singleton() {}
+    private static class SingletonHolder {
+        private static final Singleton INSTANCE = new Singleton();
+    }
+    public static Singleton getInstance() {
+        return SingletonHolder.INSTANCE;
+    }
+}
+```
+
+利用了类加载机制保证初始化实例时只有一个线程，既实现了线程安全，又避免了同步带来的性能影响。
+
+###### 6. 枚举
+
+```
+javaCopy codepublic enum Singleton {
+    INSTANCE;
+    public void whateverMethod() {
+    }
+}
+```
+
+使用枚举方式是实现单例模式的最佳方法，它不仅能避免多线程同步问题，还能防止反序列化重新创建新的对象
+
+
 
 ### 算法
 
