@@ -468,9 +468,123 @@ public interface Collection<E> extends Iterable<E>
 
 ##### 优先队列：
 
-#### 并发&多线程(todo:2.13)
+#### 并发&多线程(todo:2.13/16/17)
 
 [（2023最新Java进阶学习路线【涵盖初，中，高级程序员以及架构师所有内容】）_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1QB4y1v7Si?p=2&vd_source=f67d6aae55af8412bb2b00a8e38c78b8)
+
+线程切换的概念：CPU保存现场，执行新线程，回复现场，继续执行原线程的这样一个过程
+
+##### CAS
+
+compare and swap
+
+`AtomicInteger`：看看底层实现
+
+```java
+AtomicInteger
+```
+
+cas如何实现：
+
+1. 读取当前值E
+2. 计算结果值V
+3. 比较E和当前值N
+4. 相等则修改为V
+5. 如果不相等则其他线程将其修改，需要重新读取计算
+6. ABA问题：其他线程修改数次后和原值相同，解决方法：给值增加版本号、
+7. **cas的底层实现：**`lock cmpxchg`
+
+##### 对象在内存中的布局：
+
+```java
+Object o = new Object();
+System.out.println(ClassLayout.parseInstance(o).toPrintable());
+synchronized (o){
+      System.out.println(ClassLayout.parseInstance(o).toPrintable());
+}//执行块中代码时，对o上锁
+```
+
+```
+java.lang.Object object internals:
+ OFFSET  SIZE   TYPE DESCRIPTION                               VALUE
+      0     4        (object header)                           01 00 00 00 (00000001 00000000 00000000 00000000) (1)
+      4     4        (object header)                           00 00 00 00 (00000000 00000000 00000000 00000000) (0)
+      8     4        (object header)                           58 0d 00 00 (01011000 00001101 00000000 00000000) (3416)
+     12     4        (loss due to the next object alignment)
+Instance size: 16 bytes
+Space losses: 0 bytes internal + 4 bytes external = 4 bytes total
+
+java.lang.Object object internals:
+ OFFSET  SIZE   TYPE DESCRIPTION                               VALUE
+      0     4        (object header)                           d0 f4 ff 79 (11010000 11110100 11111111 01111001) (2046817488)
+      4     4        (object header)                           1b 00 00 00 (00011011 00000000 00000000 00000000) (27)
+      8     4        (object header)                           58 0d 00 00 (01011000 00001101 00000000 00000000) (3416)
+     12     4        (loss due to the next object alignment)
+Instance size: 16 bytes
+Space losses: 0 bytes internal + 4 bytes external = 4 bytes total
+```
+
+JVM连个参数：`UseCompressedClassPointer``UseCompressedOops`分别是使用类压缩指针，和使用普通对象压缩指针，未压缩8字节64位，压缩后4个字节32位。
+
+普通对象在内存中的结构：
+
+1. 对象头（markword）：8字节
+2. 类型指针（class pointer）：4字节
+3. 实例数据（instance data）：
+4. 对齐（padding）：对齐到8字节的倍数，方便读取
+
+##### 锁的升级过程以及Markword内容：
+
+1. new出来一个对象`Object o = new Object()`，无锁态。
+2. 调用`o.hashCode()`等方法，则把hashCode写到markword中
+3. 使用`synchronized(o)`则偏向锁，markword存储线程ID。ps:偏向锁有延迟
+4. 如果有线程进行竞争，则撤销偏向锁，线程在自己的线程栈中生成`LockRecord`，这个锁记录中包含了锁对象的Mark Word的拷贝，用CAS操作将markword设置成指向自己这个线程的LR的指针，
+5. 如果竞争加剧（有线程超过10次自旋，或者自旋线程数超过cpu核心数的一半），升级位重量级锁，linux mutex，线程挂起，进入等待队列
+
+##### 锁消除（Lock eliminate）&锁粗化（Lock coarsening）
+
+`StringBuffer`和`StringBuilder`的区别：
+
+1. `StringBuffer`中的方法`append`是同步的(`synchronized`)
+
+   ```java
+   public void add(String str1,String str2){
+       StringBuffer sb = new StringBuffer();
+       sb.append(str1).append(str2);
+   }
+   //当sb这个引用旨在add方法中使用，不可能被其他线程引用，因此sb是不可能共享的资源，JVM会自动消除StringBuffer对象内部的锁
+   ```
+
+```java
+public String test(String str){
+    int i = 0;
+    StringBuffer sb = new StringBuffer();
+    while(i<100){
+        sb.append(str);
+        i++;
+    }
+    return sb.toString;
+}
+```
+
+JVM会检测到这样一连串的操作都对同一个对象加锁，此时就加一次锁。
+
+##### `synchronized`的实现过程：
+
+1. java代码：`synchronized`
+2. class代码：monitorenter monitorexit
+3. 执行过程中自动升级
+4. lock comxchg
+
+##### 缓存行：
+
+MESI Cache一致性协议：Cache line 有四种状态 Modified,Exclusive,Shared,Invalid（x86）
+
+##### Volatile：
+
+乱序执行：
+
+线程可见性：
 
 #### JVM(todo:2.14)
 
@@ -485,6 +599,8 @@ public interface Collection<E> extends Iterable<E>
 3. 元空间：存储可以运行的class文件
 4. 本地方法栈：JVM在使用系统调用时使用
 5. 寄存器：给cpu使用
+
+**多线程的时候如何分配**
 
 ##### 对象在内存中的情况：
 
@@ -571,6 +687,10 @@ Son son = new Son();
 系统类加载器：负责java -classpath或-D java.class.path所指的目录下的类和jar包
 
 **双亲委派机制：**
+
+##### 对象在内存中的布局：
+
+使用工具JOL (Java Object Layout)
 
 #### 注解
 
