@@ -372,6 +372,8 @@ Method method = clazz.getDeclaredMethod("myPrivateStaticMethod",String.class);
 
 ![image-20240209220900778](notepics/image-20240209220900778.png)
 
+##### 动态代理：
+
 ##### 静态初始化块：
 
 静态初始化块是一种特殊的代码块，用于初始化静态变量。静态初始化块在类第一次被加载到JVM时执行，这发生在任何对象创建之前，且静态初始化块只执行一次。
@@ -381,6 +383,30 @@ Method method = clazz.getDeclaredMethod("myPrivateStaticMethod",String.class);
 静态初始化块不能访问非静态变量或方法，因为它是在类加载时执行的，这时还没有任何对象实例存在。
 
 ##### Stream:
+
+##### BigInteger：
+
+##### BigDecima：
+
+##### Runtime：
+
+##### 正则表达式：
+
+##### 包装类：
+
+##### 时间相关类util包和time包：
+
+Date：
+
+SimpleDateFormat：
+
+Calendar：
+
+##### 异常：
+
+##### File：
+
+##### IO流：
 
 #### 工具类：
 
@@ -441,6 +467,8 @@ public interface Collection<E> extends Iterable<E>
 
   3. `LinkedList`：
 
+  **List<List<Integer>> res = new ArrayList<>();的底层逻辑，内部List是如何分配的？**
+
 - `Queue`：
 
   1. `LinkedList`：
@@ -454,6 +482,13 @@ public interface Collection<E> extends Iterable<E>
 ##### Map:
 
 - `HashMap`：
+
+  HashMap是如何分配空间的？
+
+  HashMap的内部实现？
+
+  HashMap的底层逻辑？
+
 - `TreeMap`：
 
 ##### 双端队列`Deque`
@@ -468,11 +503,34 @@ public interface Collection<E> extends Iterable<E>
 
 ##### 优先队列：
 
+#### 网络编程：
+
+##### TCP（Transmission Control Protocol）：基于字节流
+
+##### UDP（User Datagram Protocol）：UDP是一种无连接的传输层协议，提供简单但是不可靠的消息传输服务。
+
+特点
+
+- **无连接**：UDP在传输数据之前不需要建立连接，直接发送数据。
+- **不可靠传输**：UDP不保证数据的可靠到达，即数据可能丢失或顺序可能错乱。
+- **快速传输**：由于UDP协议简单，处理速度快，没有建立连接的延迟，适合对传输速度要求较高的场景。
+- **支持一对多通信**：UDP支持发送单个数据包到多个接收者（广播或组播）。
+
 #### 并发&多线程(todo:2.13/16/17)
 
 [（2023最新Java进阶学习路线【涵盖初，中，高级程序员以及架构师所有内容】）_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1QB4y1v7Si?p=2&vd_source=f67d6aae55af8412bb2b00a8e38c78b8)
 
 线程切换的概念：CPU保存现场，执行新线程，回复现场，继续执行原线程的这样一个过程
+
+##### 线程：
+
+线程优先级：
+
+Java中，JVM中一个线程对应操作系统中一个线程
+
+用户线程：
+
+内核线程：
 
 **超线程：**一个ALU对应多个PC寄存器的组合，例如四核八线程
 
@@ -531,8 +589,15 @@ JVM连个参数：`UseCompressedClassPointer``UseCompressedOops`分别是使用�
 普通对象在内存中的结构：
 
 1. 对象头（markword）：8字节
+
+   JDK8
+
+   ![image-20240214154443183](notepics/image-20240214154443183.png)
+
 2. 类型指针（class pointer）：4字节
+
 3. 实例数据（instance data）：
+
 4. 对齐（padding）：对齐到8字节的倍数，方便读取
 
 ##### 锁的升级过程以及Markword内容：
@@ -573,10 +638,24 @@ JVM会检测到这样一连串的操作都对同一个对象加锁，此时就�
 
 ##### `synchronized`的实现过程：
 
+synchronized对对象加锁是在对象的markword中记录，那么对方法代码块加锁呢？
+
+当`synchronized`修饰非静态方法时，锁定的是调用该方法的对象实例。
+
+当`synchronized`修饰代码块时，需要指定一个锁对象
+
+当`synchronized`修饰静态方法时，锁定的是这个类的Class对象
+
 1. java代码：`synchronized`
 2. class代码：monitorenter monitorexit：这两个指令分别用于进入和退出监视器（Monitor），监视器是实现`synchronized`同步的底层机制。每个使用`synchronized`的对象都关联着一个监视器，当线程执行到`monitorenter`指令时，它将尝试获取监视器的所有权；当执行到`monitorexit`指令时，它将释放监视器。如果一个线程已经持有了监视器，其他任何线程都无法通过`monitorenter`成功获取监视器，直到持有监视器的线程执行`monitorexit`释放监视器。
 3. 执行过程中自动升级
 4. lock comxchg
+
+##### `synchroniezd`和`ReentrantLock`有哪些区别？
+
+##### 重入锁：
+
+
 
 ##### 缓存行：
 
@@ -586,9 +665,93 @@ MESI Cache一致性协议：Cache line 有四种状态 Modified,Exclusive,Shared
 
 阻止指令重排序：在运行程序时，为了提高性能，编译器和处理器可能会对指令序列进行重新排序。`volatile`可以部分防止指令重排，确保在`volatile`变量读写操作前后的程序执行顺序不被重排，从而避免在并发情况下可能出现的数据不一致问题。
 
+**JSR内存屏障：**
+
+1. **LoadLoad Barriers**：放在两个读操作之间，确保前一个读操作的结果对后一个读操作可见。
+
+2. **StoreStore Barriers**：放在两个写操作之间，确保前一个写操作对后一个写操作可见。
+
+3. **LoadStore Barriers**：放在读操作后和写操作前，确保读操作的结果在写操作发生之前可见。
+
+4. **StoreLoad Barriers**：是最重要的一种屏障，放在写操作后和读操作前，确保写操作的结果对后续的读操作可见
+
+   对`volatile`变量的写操作会插入StoreStore和StoreLoad屏障，而对`volatile`变量的读操作会插入LoadLoad和LoadStore屏障。
+
+**volatile如何解决指令重排序?**
+
+1. volatile i
+2. ACC_VOLATILE
+3. JVM的内存屏障：
+4. hotspot实现：
+
 保证线程可见性：当一个变量被声明为`volatile`之后，线程对这个变量的读取都会从主存中进行，对这个变量的写入也会立即同步回主存，这保证了一个线程对这个变量值的修改对其他线程是立即可见的。
 
 虽然`volatile`关键字确保了变量的可见性和防止指令重排，但它并不具备互斥性
+
+##### ThreadLocal:
+
+线程本地变量，每个线程独立拥有，线程存在则变量存在
+
+`ThreadLocal`变量并不是存储在`ThreadLocal`对象本身，而是存储在访问该`ThreadLocal`的线程的`Thread`对象内部。具体而言，每个`Thread`对象内部有一个`ThreadLocal.ThreadLocalMap`类型的字段`threadLocals`，该map存储`ThreadLocalMap.Entry`类型，该Entry使用弱引用。
+
+为什么要用弱引用？
+
+防止内存泄漏，ThreadLocal对象被两个变量引用：一个是new这个对象时的强引用`ThreadLocal<String> tl = new ThreadLocal<>();`另一个是调用set方法后，存储的Entry中的key对这个对象的弱引用。当tl不再引用这个对象时，key的引用就被回收。但是在这个Map中的那条记录无法被回收，需要手动。
+
+```java
+static class Entry extends WeakReference<ThreadLocal<?>> {
+            /** The value associated with this ThreadLocal. */
+            Object value;
+
+            Entry(ThreadLocal<?> k, Object v) {
+                super(k);
+                value = v;
+            }
+        }
+```
+
+ThreadLocal源码分析：
+
+
+
+java中的四种引用：
+
+1. 强引用（Normal Reference）：栈里的m指向堆里的对象
+
+2. 软引用：当堆中内存足够时，不回收，内存不够分配的时候，回收软引用指向的对象。
+
+   ```java
+   SoftReference<byte[]> sr = new SoftReference<>(new byte[10]);
+   byte[] by = sr.get()
+   ```
+
+3. 弱引用：垃圾回收期gc只要发现有弱引用的就回收，
+
+4. 虚引用：get不到，用于管理堆外内存
+
+##### ThreadPoolExecutor:
+
+为什么要使用线程池？
+
+**线程池的使用方式：**
+
+- 构建ThreadPoolExecutor对象即可
+- 执行runnable 使用execute方法
+- 执行callable 使用submit方法，有返回值
+
+JDK中已经提供了Executors，提供了很多封装好的线程池
+
+**核心参数**：
+
+- 核心线程数（corePoolSize）：当提交
+- 最大线程数（maximumPoolSize）：
+- 存活时间（keepAliveTime）：非核心线程的空闲时间
+- 单位（unit）：存活时间的单位
+- 任务队列（workQueue）：
+- 线程工厂（ThreadFactory）：
+- 拒绝策略（RejectedExecutionHandler）：
+
+**执行流程：**
 
 #### JVM(todo:2.14)
 
@@ -695,6 +858,16 @@ Son son = new Son();
 ##### 对象在内存中的布局：
 
 使用工具JOL (Java Object Layout)
+
+```java
+Object o = new Object();
+System.out.println(ClassLayout.parseInstance(o).toPrintable());
+synchronized (o){
+      System.out.println(ClassLayout.parseInstance(o).toPrintable());
+}//执行块中代码时，对o上锁
+```
+
+
 
 #### 注解
 
@@ -813,6 +986,10 @@ javaCopy codepublic class Singleton {
 
 这种方式既保证了懒加载，又通过双重检查和`volatile`保证了线程安全和性能。
 
+**DCL为什么需要`volatile`？**
+
+因为new方法在底层实现时基本分为三步骤：分配内存，执行初始化方法，链接，如果不使用volatile关键字，则有可能发生指令重排序，将半初始化状态的对象链接到变量上，当另一个线程来获取实例时，则会出现使用半初始化对象的结果。
+
 ###### 5. 静态内部类
 
 ```
@@ -850,6 +1027,14 @@ javaCopy codepublic enum Singleton {
 #### KMP算法：
 
 #### 贪心：[095764-01.pdf (tsinghua.edu.cn)](http://www.tup.tsinghua.edu.cn/upload/books/yz/095764-01.pdf)
+
+#### 广度优先遍历：
+
+广度优先遍历时如何记载结点的层数？
+
+#### 矩阵：
+
+##### 矩阵中位置的数学关系：
 
 ### 计算机基础知识
 
