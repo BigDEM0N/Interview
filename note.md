@@ -1555,6 +1555,46 @@ public class SpringApplicationInitializer extends AbstractAnnotationConfigDispac
 
 #### （推送？）RSocket&WebSocket:
 
+#### Servlet:
+
+[01-servlet与http的简单介绍_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1Zw411Z77e?p=2&vd_source=f67d6aae55af8412bb2b00a8e38c78b8)
+
+##### servlet简介：
+
+Servlet是运行在Web服务器或应用服务器上的程序，它用于处理客户端请求并生成动态内容。
+
+Servlet的主要特点和功能包括：
+
+- **生命周期管理**：Web容器（如Tomcat）负责管理Servlet的生命周期，包括初始化（调用`init`方法）、处理请求（调用`service`方法或`doGet`、`doPost`等方法）和销毁（调用`destroy`方法）。
+- **请求处理**：Servlet可以接收客户端发送的请求，并通过请求对象（`HttpServletRequest`）访问请求信息，然后生成响应（通过`HttpServletResponse`对象）。
+- **多线程支持**：Servlet容器会为每个请求创建一个新的线程，使得Servlet能够同时处理多个请求。
+- **会话管理**：Servlet提供了会话管理机制，允许跟踪用户会话状态。
+
+##### Http协议：
+
+特点：
+
+1. **简单性**：HTTP 协议简单，易于理解和使用。客户端发送请求到服务器，服务器回送响应，这个过程非常直观。
+2. **无连接性**：HTTP 是一个无连接的协议。默认情况下，HTTP 请求一次被处理后，连接就被关闭，节省了服务器资源。这意味着服务器不需要维持客户状态，从而简化了服务器的设计。这种模式被称为“无状态协议”。
+3. **无状态性**：无状态是指协议对于事务处理没有记忆能力。服务器不知道客户端是什么状态。虽然这样简化了服务器的设计，但在实际应用中，我们通常通过在请求中添加Cookies来维持状态。
+4. **支持多种数据类型**：HTTP 不仅支持传输文本，还支持图片、视频、音频等多种类型的数据。通过使用MIME类型，在HTTP头部对资源类型进行描述，使得HTTP能够处理和传输多种格式的文档。
+5. **可扩展性**：HTTP 允许自定义请求头和响应头，因此可以根据需要扩展功能。例如，通过自定义头部，可以实现客户端缓存、认证、内容协商等功能。
+6. **支持B/S和C/S模式**：HTTP 不仅支持在浏览器（客户端）和服务器之间的通信（B/S架构），也可以在自定义的客户端和服务器之间进行通信（C/S架构）。
+7. **支持缓存处理**：通过HTTP头信息中的缓存控制指令，可以控制文档在客户端和代理服务器上的缓存处理，有效减少带宽使用，提高访问速度。
+8. **支持安全扩展（HTTPS）**：虽然HTTP本身不包含加密机制，但可以通过SSL/TLS协议加密HTTP通信，形成HTTPS，确保数据传输的安全性。
+
+请求行报文格式：
+
+METHOD 空格 URI 空格 VERSION 换行
+
+响应行报文格式：
+
+VERSION 空格 STATUS CODE 空格 REASON 换行
+
+#### Ajax：
+
+Asynchronous JavaScript and XML 在无需重新加载整个网页的情况下，能够更新部分网页
+
 #### Nginx
 
 ##### 跨域：
