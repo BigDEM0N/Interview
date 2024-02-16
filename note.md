@@ -888,7 +888,7 @@ default Stream<E> parallelStream() {
 
 ##### 优先队列：
 
-#### 网络编程：
+#### 网络编程（java.net）：
 
 ##### TCP（Transmission Control Protocol）：基于字节流
 
@@ -1572,6 +1572,8 @@ Servlet的主要特点和功能包括：
 
 ##### Http协议：
 
+超文本传输协议(Hyper Text Transfer Protocol)
+
 特点：
 
 1. **简单性**：HTTP 协议简单，易于理解和使用。客户端发送请求到服务器，服务器回送响应，这个过程非常直观。
@@ -1585,11 +1587,33 @@ Servlet的主要特点和功能包括：
 
 请求行报文格式：
 
-METHOD 空格 URI 空格 VERSION 换行
+![](notepics/image-20240216165618293.png)
 
 响应行报文格式：
 
-VERSION 空格 STATUS CODE 空格 REASON 换行
+![](notepics/image-20240216165930649.png)
+
+**http的交互过程**
+
+1. 建立连接：
+
+   三次握手：syn，ack+syn，ack
+
+2. 发送请求：
+
+3. 关闭连接
+
+   四次分手：经过四次才能释放两端的资源
+
+GET和POST请求方式的区别：
+
+1. get请求参数是直接显示在地址栏的，而post在地址栏不显示
+2. get方式不安全，post安全
+3. get参数有长度限制，post参数没有长度限制
+
+##### tomcat：
+
+**自定义tomcat实现：**
 
 #### Ajax：
 
