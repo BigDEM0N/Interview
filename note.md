@@ -424,7 +424,7 @@ Calendar：
 
 1. `public static void sort(int[] a)`使用排序算法`DualPivotQuicksort.sort(a, 0, 0, a.length);`
 
-
+**Arrays.toString(mark)和mark.toString()的区别**
 
 #### 容器：
 
@@ -1407,6 +1407,8 @@ javaCopy codepublic enum Singleton {
 
 ### 算法
 
+[2、算法基本概念_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1zv411j7QX?p=5&vd_source=f67d6aae55af8412bb2b00a8e38c78b8)
+
 #### 快排：
 
 #### KMP算法：
@@ -1479,7 +1481,7 @@ OOP，根据业务创建模型，基于模型展开业务开发。
 
 ##### `@Configuration`注解
 
-
+##### Spring三级缓存：
 
 #### Spring Security & Oauth2 & Shiro
 
@@ -1615,6 +1617,125 @@ GET和POST请求方式的区别：
 
 **自定义tomcat实现：**
 
+Servlet简介：
+
+servlet是一种web服务器端编程技术，是一个实现了特殊接口的Java类，由支持Servlet的web服务器调用和启动运行，一个Servlet负责对应的一个或一组URL访问请求
+
+Servlet流程：
+
+Servlet生命周期：
+
+1. **加载和实例化** (`init` 方法)：
+   - **加载**：Servlet 容器启动时或当 Servlet 被首次请求时，容器加载 Servlet 类。
+   - **实例化**：加载后，Servlet 容器创建 Servlet 类的实例。
+   - **初始化**：实例化后，容器调用 Servlet 的 `init` 方法。这个方法只会被调用一次。`init` 方法通常用于一次性的启动逻辑，例如加载配置或初始化资源（如数据库连接）。`init` 方法接收一个 `ServletConfig` 对象，包含了 Servlet 的初始化参数。
+2. **请求处理** (`service` 方法)：
+   - 对于每个请求，Servlet 容器会创建一个新的 `HttpServletRequest` 对象和 `HttpServletResponse` 对象，并调用 Servlet 的 `service` 方法。`service` 方法会根据 HTTP 请求的类型（GET、POST、PUT、DELETE等）调用对应的方法（如 `doGet`、`doPost`等）。这意味着 `service` 方法可能会被调用多次，每次请求都是如此。
+3. **销毁** (`destroy` 方法)：
+   - 当 Servlet 容器关闭或需要从容器中移除 Servlet 时，它会调用 `destroy` 方法。这个方法也只会被调用一次。`destroy` 方法可以用来释放 Servlet 占用的资源，如关闭数据库连接或清理临时文件等。
+
+**`doGet`,`doPost`,`Service`方法的区别**
+
+**request对象：**
+
+tomcat会把请求转换到`HttpServletRequest`中
+
+**Cookie：**
+
+http是一个无状态协议，当一个客户端向服务端发送请求，在服务器返回响应后，连接就关闭了，服务器端不再保留连接信息，那么当客户端发送的多次请求需要相同的参数时，怎么办？
+
+Cookie是一种在客户端保持http状态信息的技术，cooke是浏览器访问服务器的某个资源是，web服务器在响应头中存储传给浏览器的数据。cookie中保存的是key-value的形式
+
+```java
+Cookie cookie = new Cookie("00001","value");
+cookie.setPath("/xxx");
+cookie.setMaxAge(3*24*3600);
+response.addCookie(cookie);
+Cookie[] cookies = request.getCookies();
+```
+
+**Session：**
+
+Session的机制：
+
+1. **用户首次访问服务器**：当用户第一次访问Web应用服务器时，服务器会根据需要决定是否创建一个Session。
+2. **创建Session**：如果需要，服务器会为该用户创建一个唯一的Session ID（通常是一个长字符串），并将此ID与用户的状态信息一起存储在服务器上。
+3. **发送Session ID给客户端**：创建Session后，服务器会将Session ID通过响应发送给客户端，通常是通过设置Cookie在客户端浏览器存储Session ID。有时候，也可以通过URL重写等其他方式传递Session ID。
+4. **客户端存储Session ID**：客户端浏览器会存储Session ID（如果是通过Cookie方式的话），并在之后的每次请求中自动将其发送给服务器。
+5. **服务器识别Session ID**：在后续的请求中，服务器会从请求中读取Session ID，通过这个ID查找之前存储的用户状态信息，从而知道是哪个用户发起的请求。
+6. **持续交互**：服务器根据Session中存储的状态信息来处理用户的请求，直到Session过期或被显式销毁，比如用户登出。
+
+Session的基本操作:
+
+```java
+//request为jakarta的包中HttpServletRequest
+HttpSession session = request.getSession();
+//设置session的失效时长
+session.setMaxInactiveInterval(5);
+//强制session失效：
+session.invalidate();
+//session设置参数
+session.setAttribute("key","value");
+
+```
+
+**ServletContext和ServletConfig：**
+
+运行在JVM上的每一个web应用都有一个与之对应的Servlet上下文，提供ServletContext接口用来表示Servlet上下文，ServletContext可以被所有servlet访问
+
+servletContext的基本使用
+
+```java
+ServletContext servletContext = this.getServletContext();
+ServletContext servletContext = this.getServletConfig().getServletContext();
+ServletContext servletContext = request.getSession().getServletContext();
+
+//设置属性值
+servletContext.setAttribute("key","value");
+```
+
+servletConfig的基本使用
+
+可以用来获取web.xml中的servlet配置信息
+
+```java
+
+```
+
+**JSP：**
+
+![image-20240218182502844](notepics/image-20240218182502844.png)
+
+编译器指令
+
+1. page
+
+2. include
+
+3. taglib
+
+   ```jsp
+   <%@ page contentType="text/html;charset=GBK"%>
+   <%@ include file="相对位置"%>
+   <%@ taglib uri="http://java.sun.com/jstl/core" prefix="c"%>
+   ```
+
+**EL表达式：**
+
+```jsp
+${expression}
+```
+
+**JSTL标签库：**
+
+**过滤器和监听器：**
+
+过滤器能够对web请求和web响应的头属性和内容体进行操作的特殊web组件`extends Filter`
+
+监听器监听request对象或者response对象`extends ServletRequestListener`
+
+![image-20240218190116031](notepics/image-20240218190116031.png)
+
 #### Ajax：
 
 Asynchronous JavaScript and XML 在无需重新加载整个网页的情况下，能够更新部分网页
@@ -1629,9 +1750,155 @@ Asynchronous JavaScript and XML 在无需重新加载整个网页的情况下，
 
 #### 缓存
 
-#### 数据库Mysql（2.17）
+#### 数据库Mysql（2.18）
 
-#### 消息队列
+[也就马士兵能把MySQL基础+优化+SQL+索引+锁机制+引擎+底层原理等MySQL数据库讲的如此简单明了！_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1Y64y1i7kM/?spm_id_from=333.337.search-card.all.click&vd_source=f67d6aae55af8412bb2b00a8e38c78b8)
+
+##### 基础语法
+
+```mysql
+# select全部
+SELECT * FROM `table_name`;
+# select列名
+SELECT `column_name` AS `xxx`,`column_name` FROM `table_name`;
+# select处理空值
+SELECT `column_to_calculate`*12+(CASE WHEN `column_to_calculate` IS NULL THEN 0 ELSE `column_to_calculate` END) FROM `table_name`;
+# select去重
+SELECT DISTINCT `column_name` FROM `table_name`;
+
+# where
+where id = 10;
+where id <> 10;# 不等于
+where id>= 1 and id<=100;
+where `date` > '1980-02-01';
+# 模糊查询
+LIKE '%A%' # 0个或多个
+LIKE '_A_' # 一个
+
+# order by
+ORDER BY `xxx`;
+# 倒序
+ORDER BY `AAA` DESC,`xxx` DESC; # 先前面排完，相同的用后面的排
+
+# group by
+SELECT MAX(sal) FROM emp GROUP BY `column_name`;
+
+# having 是对分组进行限制
+
+```
+
+常用函数
+
+[MySQL :: MySQL 8.0 Reference Manual :: 14 Functions and Operators](https://dev.mysql.com/doc/refman/8.0/en/functions.html)
+
+组函数：
+
+查找多条数据，输出一条数据
+
+```mysql
+
+```
+
+**常见面试题：**
+
+**分页查询：**
+
+```sql
+# mysql
+SELECT ename,sal FROM empl limit 5; # 第一页
+SELECT ename,sal FROM empl LIMIT 5,5; # 第二页
+```
+
+**DDL语句：**
+
+Data Defination Langure 
+
+联合主键：两个或多个字段联合起来作为主机那
+
+**DML语句** CRUD
+
+**索引：**mysql常用索引：B树（B+树）和Hash
+
+**存储引擎是什么？**
+
+
+
+InnoDB，MyISAM使用B+树
+
+MEMORY 使用Hash
+
+InnoDB是否支持Hash？InnoDB可以使用自适应hash，用户没办法干预
+
+*为什么选择B+树？*
+
+hash索引的缺点：
+
+1. 利用hash存储的话需要将所有的数据文件添加到内存，当数据量非常大时，将所有数据加载到内存中的哈希表可能会导致内存不足
+2. **不支持范围查询**：与树形索引结构（如B树）不同，哈希索引不适合执行范围查询操作，因为哈希函数的输出并不保持键之间的顺序关系。
+
+*二叉树和红黑树为什么不行？*
+
+无论是二叉树还是红黑树，都会因为树的深度造成io次数变多，影响数据读取的效率。
+
+**扰动函数：**
+
+**磁盘预读：**页 4KB
+
+**前缀索引：**它基于字段值的前缀（即字符串的开始部分）来创建索引，而不是整个字段值。前缀索引可以减少索引占用的空间并提高查询效率
+
+```sql
+CREATE INDEX idx_name_prefix ON table_name (name(10));
+```
+
+MyISAM和InnoDB的区别：
+
+MyISAM的B+树的叶子结点中存储的是一个地址，地址指向数据文件中的的数据
+
+InnoDB的B+树的叶子结点中直接存储数据
+
+**注意：**InnoDB是通过B+树结构对主键创建索引，然后叶子结点中存储记录，**如果没有主键，那么会选择唯一键，如果没有唯一键**，则会生成一个6字节的`row_id`来作为主键。如果创建索引的键是其他字段，那么在叶子结点中存储的是该记录的主键，然后通过主键索引找到对应的记录；
+
+**聚簇索引和非聚簇索引：**
+
+**聚簇索引**：聚簇索引将数据表中的行直接存储在索引的叶节点中。这意味着表数据按照索引键的顺序物理存储。每个表只能有一个聚簇索引，因为数据只能按照一种顺序存储。
+
+- **数据排序**：数据按照索引键的顺序进行物理排序，这可以提高范围查询的效率。
+- **快速访问**：由于索引结构直接包含了表中的数据，聚簇索引可以加快数据的访问速度。
+- **空间效率**：聚簇索引不需要额外的空间来存储指向数据行的指针，因为数据直接存储在索引的叶节点上。
+- **插入速度影响**：由于需要保持数据的物理顺序，插入和删除操作可能导致数据页分裂，影响性能。
+
+**非聚簇索引**：非聚簇索引，又称为辅助索引或二级索引，不改变表中数据的物理存储顺序。它们通过索引键和一个指向数据行的指针（通常是行ID或数据页的地址）来构建索引
+
+- **独立的存储结构**：非聚簇索引在物理上独立于数据表，索引结构包含键值和指向实际数据行的指针。
+- **支持多个索引**：一个表可以拥有多个非聚簇索引，每个索引可以基于不同的列或列组合创建。
+- **额外空间需求**：非聚簇索引需要额外的存储空间来保存索引结构及其指向数据行的指针。
+- **访问速度**：查询非聚簇索引可能需要两次磁盘访问：一次访问索引找到数据行的指针，另一次访问数据表来获取数据。
+
+**回表：**一个查询使用非聚簇索引来查找数据时，它**首先在索引中查找满足查询条件的条目**。由于非聚簇索引的叶节点**不直接包含数据行本身**，而是包含了指向实际数据行的指针（在InnoDB中通常是主键的值），所以在找到索引条目后，数据库需要执行一个额外的步骤：使用这些指针去数据表中检索完整的数据行。这个从索引指针到数据行的检索过程就称为"回表"。
+
+**索引覆盖：**如果查询可以完全由非聚簇索引中的列来满足，那么就可以避免回表操作。这种索引称为覆盖索引。
+
+索引覆盖最常见于以下几种查询场景：
+
+- **选择特定列**：查询只需要表中的少数几个列，而这些列已经被包含在一个索引中。
+- **聚合查询**：如计数（COUNT）、求和（SUM）、平均值（AVG）等操作，只需对索引中的列进行操作。
+- **排序和分组**：当查询包含ORDER BY或GROUP BY子句时，如果所涉及的列已经在索引中，可以直接利用索引进行排序或分组，无需额外的数据表访问。
+
+**索引下推：**索引下推优化技术特别指的是**将查询的一部分条件（如过滤条件）应用到索引扫描操作中，**而不是在检索了所有可能的行之后再应用这些条件。在没有索引下推的情况下，数据库可能首先使用索引找到所有可能的匹配行，然后再将查询条件应用到这些行上，以过滤出真正符合条件的结果。
+
+**最左匹配：**最左匹配原则指的是在使用复合索引进行查询时，查询条件需要从索引的最左侧列开始匹配，并且按照索引中定义的列的顺序进行。
+
+如，假设有一个复合索引是基于以下三个列创建的：`(A, B, C)`。根据最左匹配原则，以下是几种可以有效利用这个索引的查询条件的例子：
+
+1. `WHERE A = value`：这个查询可以充分利用索引，因为它从索引的最左侧列开始。
+2. `WHERE A = value AND B = value`：这个查询同样可以有效利用索引，因为它按照索引列的顺序来。
+3. `WHERE A = value AND B = value AND C = value`：这个查询可以最大限度地利用索引。
+
+然而，如果查询条件跳过了最左侧的列，比如只有`WHERE B = value`或者`WHERE C = value`，则无法充分利用该复合索引。
+
+*组合索引是如何存储的？*
+
+#### 消息队列 
 
 #### 分布式
 

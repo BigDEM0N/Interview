@@ -1,10 +1,13 @@
 package org.example;
 
 import java.io.IOException;
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.http.HttpRequest;
 
 public class MyServer {
     public static void startServer(int port) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
@@ -12,6 +15,7 @@ public class MyServer {
         Socket socket = null;
 
         while(true){
+            HttpServletRequest;
             socket = serverSocket.accept();
             //获取输入流和输出流
             InputStream inputStream = socket.getInputStream();
