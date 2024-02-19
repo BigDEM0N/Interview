@@ -1769,8 +1769,6 @@ Asynchronous JavaScript and XML 在无需重新加载整个网页的情况下，
 
 [也就马士兵能把MySQL基础+优化+SQL+索引+锁机制+引擎+底层原理等MySQL数据库讲的如此简单明了！_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1Y64y1i7kM/?spm_id_from=333.337.search-card.all.click&vd_source=f67d6aae55af8412bb2b00a8e38c78b8)
 
-[4、联合索引底层数据存储结构又是怎样的_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1N4421w7xX/?p=4&spm_id_from=pageDriver&vd_source=f67d6aae55af8412bb2b00a8e38c78b8)
-
 ##### 基础语法
 
 ```mysql
@@ -2072,6 +2070,81 @@ Mysql并发Buffer Pool机制：
 2. 一致性：使用事务的目的，由业务逻辑代码正确保证
 3. 隔离性：在事务并发执行时，他们内部的操作不能互相干涉
 4. 持久性：一旦提交了事务，它对数据库的改变就应该是永久性的。持久性由redo log来保证。
+
+**InnoDB的四种隔离级别：**
+
+mysql默认 RR 可重复读 
+
+oracle数据库默认 rc
+
+1. `read uncommit` 读未提交：脏读
+
+   （读到了不应该存在数据）
+
+   
+
+2. `read commit` 读已提交：不可重复读
+
+   B事务读完后,A事务提交，B再读会读到不同数据
+
+   不同时间同一个数据的查询会改变
+
+3. `repeatable read` 可重复读：
+
+   可能会脏写，覆盖了正确的数据
+
+4. `serializable` 串行
+
+**MVCC机制：**
+
+[4、事务底层锁机制与MVCC并发优化机制详解_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1N4421w7xX/?p=14&spm_id_from=pageDriver&vd_source=f67d6aae55af8412bb2b00a8e38c78b8)
+
+Multi-Version Concurrency Control 多版本并发控制
+
+可以做到读写不阻塞，且避免类似脏读这样的问题，主要通过undo log日志来实现。
+
+**Mysql中的锁：**
+
+1. 读锁（共享锁、S锁）：`select`
+
+   读锁是一种共享锁，允许事务读取一个数据项的同时，其他事务也可以读取同一数据项，但是在读锁持有期间，防止任何事务对数据进行修改。
+
+   - **用途**：主要用于查询操作，确保查询的数据在读取过程中不会被修改。
+
+   - **特点**：多个事务可以同时持有同一数据项的读锁，即共享锁是允许多个读者的存在。
+
+   - 设置方法
+
+     ：在MySQL中，普通的
+
+     `SELECT`
+
+     操作默认不会设置读锁。要显式地获得读锁，可以使用
+
+     `LOCK IN SHARE MODE`
+
+     选项。
+
+     ```mysql
+     SELECT * FROM `table_name` WHERE `condition` LOCK IN SHARE MODE;
+     ```
+
+2. 写锁（排他锁，X锁）：`select...FOR UPDATE`
+
+   写锁是一种排他锁，当一个事务对数据项加上写锁后，只允许该事务对数据进行读取或修改，其他任何事务都不能读取或修改该数据，直到写锁被释放。
+
+   - **用途**：主要用于更新、插入和删除操作，确保事务在修改数据时，不会有其他事务对这些数据进行读取或修改。
+
+   - **特点**：一旦一个事务对数据项加上了写锁，其他事务就必须等待直到锁被释放才能对该数据项进行读取或写入。
+
+   - **设置方法**：可以通过`SELECT ... FOR UPDATE`来显式地获得写锁。
+
+     ```mysql
+     SELECT * FROM `table_name` WHERE `condition` FOR UPDATE;
+     
+     ```
+
+3. 意向锁：
 
 #### 消息队列 
 
