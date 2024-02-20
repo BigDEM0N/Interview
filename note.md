@@ -1,5 +1,7 @@
 ## [面试准备](http://localhost:9000/oauth2/authorize?repose_type=code&client_id=taco-admin-client&redirect_uri=http://localhost:9000/login/oauth2/code/taco-admin-client&scope=writeIngredients+deleteIngredients)
 
+![image-20240220213744782](notepics/image-20240220213744782.png)
+
 ### Java基础（2.15）
 
 [黑马程序员Java零基础视频教程_上部(Java入门，含斯坦福大学练习题+力扣算法题和大厂java面试题）_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV17F411T7Ao/?spm_id_from=333.337.top_right_bar_window_custom_collection.content.click&vd_source=f67d6aae55af8412bb2b00a8e38c78b8)
@@ -891,6 +893,10 @@ default Stream<E> parallelStream() {
 
 - `TreeMap`：
 
+**HashMap和ConcurrentHashMap**：
+
+源码解析：
+
 ##### 双端队列`Deque`
 
 双端队列实现了两端进出，可替代栈和队列，继承自`Queue`接口，实现类**`LinkedList,ArrayDeque,LinkedBlockingDeque`**
@@ -1216,6 +1222,8 @@ this代表方法调用者的地址值
    3. 解析：虚拟机常量池内的符号引用（常量名）替换为直接引用的过程
 3. 类的初始化：JVM负责对类进行初始化
 
+**类加载器：**
+
 **什么时候会发生类初始化？**
 
 类的主动引用，一定会发生类的初始化：
@@ -1437,6 +1445,8 @@ javaCopy codepublic enum Singleton {
 #### 矩阵：
 
 ##### 矩阵中位置的数学关系：
+
+##### 中缀表达式、后缀表达式、前缀表达式的相互转化
 
 ### 计算机基础知识
 
@@ -2019,8 +2029,6 @@ B+树：
 12. 单表索引建议控制在5个以内
 13. 单索引字段数不允许超过五个（组合索引）
 
-**jdbc使用：**
-
 ##### 常见问题：
 
 *为什么建议InnoDB表必须建主键，并且推荐使用整形的自增主键？*
@@ -2047,6 +2055,8 @@ B+树：
 
 Mysql并发Buffer Pool机制：
 
+提升查询效率
+
 1. **数据和索引的缓存**：
    - Buffer Pool缓存了数据页（即表数据）和索引页。当数据库请求读取数据时，InnoDB首先检查所需的数据是否已经在Buffer Pool中。如果是，就直接从内存中读取，避免了磁盘I/O操作。如果数据不在Buffer Pool中，需要从磁盘读取并缓存到Buffer Pool中，供后续请求使用。
 2. **LRU算法**：
@@ -2070,6 +2080,8 @@ Mysql并发Buffer Pool机制：
 2. 一致性：使用事务的目的，由业务逻辑代码正确保证
 3. 隔离性：在事务并发执行时，他们内部的操作不能互相干涉
 4. 持久性：一旦提交了事务，它对数据库的改变就应该是永久性的。持久性由redo log来保证。
+
+分别具体指什么？
 
 **InnoDB的四种隔离级别：**
 
@@ -2095,13 +2107,19 @@ oracle数据库默认 rc
 
 4. `serializable` 串行
 
-**MVCC机制：**
+**MVCC机制：**实现可重复读
 
 [4、事务底层锁机制与MVCC并发优化机制详解_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1N4421w7xX/?p=14&spm_id_from=pageDriver&vd_source=f67d6aae55af8412bb2b00a8e38c78b8)
 
 Multi-Version Concurrency Control 多版本并发控制
 
 可以做到读写不阻塞，且避免类似脏读这样的问题，主要通过undo log日志来实现。
+
+表中有两个隐藏字段：`trx_id`,`roll_pointer`，`roll_pointer`指向一条undo log
+
+![image-20240220191505076](notepics/image-20240220191505076.png)
+
+**数据的可见性算法：**
 
 **Mysql中的锁：**
 
@@ -2145,6 +2163,28 @@ Multi-Version Concurrency Control 多版本并发控制
      ```
 
 3. 意向锁：
+
+**查询操作需要使用事务吗？**
+
+根据业务和对性能的要求
+
+**Mysql各种日志的实现方式：**
+
+**长事务的优化：**
+
+**连接池：**
+
+Java为[数据库连接池](https://so.csdn.net/so/search?q=数据库连接池&spm=1001.2101.3001.7020)提供了公共的接口：javax.sql.DataSource
+
+Druid连接池：
+
+配置方法：
+
+```yaml
+driverClassName=com.mysql.jdbc.Driver
+```
+
+**jdbc使用：**
 
 #### 消息队列 
 
