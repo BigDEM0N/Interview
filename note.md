@@ -897,6 +897,33 @@ default Stream<E> parallelStream() {
 
 源码解析：
 
+ConcurrentHashMap:
+
+1.7以前使用segment类进行加锁，每个concurrentHashMap对象持有一个segment[]数组，segment类继承ReentrantLock，put时进行首先计算segment数组下标，如果没有需要用`ensureSegment()`方法创建。`.lock`的操作进行加锁，一个Segment里面持有一个默认最小大小为2的Entry数组，整个ConcurrentHashMap的大小就为segment中的数组大小乘以并发级别（segment数组的大小）。**数组扩容的时候不会影响其他的segment**
+
+`ensureSegment()方法：`先获取index位置的segment，如果为空，通过segment[0]计算相关数值，之后再获取一次该位置，如果还为空，则通过上述值进行创建new segment对象，最后通过CAS，判断index位置是否为空，若为空将创建的segment对象放到index位置。CAS由系统保证原子性。
+
+`put`方法：
+
+1. 首先进行加锁 `tryLock()`继承自`ReentrantLock`
+
+   *tryLock()和lock()的区别是什么？*`lock()`是阻塞加锁，该线程如果无法获取锁，会阻塞在这一行。`tryLock()`是非阻塞加锁，如果加锁返回true，否则返回false；
+
+2. 其次通过方法`scanAndLockForPut()`方法在自旋的同时扫描链表，查看是否需要新建Entry
+
+JDK1.8之后 数据结构：synchronized+CAS+Node+红黑树，Node的val和next都用volatile修饰
+
+查找，替换，赋值操作使用CAS：
+
+- 如果put时，对应index位置上为空，使用`casTabAt(tab, i, null, new Node<K,V>(hash, key, value))`----->`U.compareAndSetReference(tab, ((long)i << ASHIFT) + ABASE, c, v);`这是`Unsafe`类中的一个方法，用于执行原子的比较并交换操作。它的作用是，如果当前变量的值等于预期值（`c`），则将该变量的值更新为新值（`v`）。
+- put时index位置不为空则，synchronized (f)，`f`是index位置的node，此时进行哈希冲突的操作
+
+扩容，哈希冲突，树化时，使用synchronized阻塞：
+
+读操作无锁，val和next都用volatile修饰
+
+数组使用volatile修饰，保证扩容时被读线程感知：
+
 ##### 双端队列`Deque`
 
 双端队列实现了两端进出，可替代栈和队列，继承自`Queue`接口，实现类**`LinkedList,ArrayDeque,LinkedBlockingDeque`**
@@ -911,9 +938,13 @@ default Stream<E> parallelStream() {
 
 #### 网络编程（java.net）：
 
-##### TCP（Transmission Control Protocol）：基于字节流
+##### TCP（Transmission Control Protocol）：
 
-##### UDP（User Datagram Protocol）：UDP是一种无连接的传输层协议，提供简单但是不可靠的消息传输服务。
+基于字节流
+
+##### UDP（User Datagram Protocol）：
+
+UDP是一种无连接的传输层协议，提供简单但是不可靠的消息传输服务。
 
 特点
 
@@ -928,7 +959,7 @@ default Stream<E> parallelStream() {
 
 线程切换的概念：CPU保存现场，执行新线程，回复现场，继续执行原线程的这样一个过程
 
-##### 线程：
+##### 线程：synchronized (f)
 
 线程优先级：
 
@@ -1090,7 +1121,7 @@ MESI Cache一致性协议：Cache line 有四种状态 Modified,Exclusive,Shared
 3. JVM的内存屏障：
 4. hotspot实现：
 
-保证线程可见性：当一个变量被声明为`volatile`之后，线程对这个变量的读取都会从主存中进行，对这个变量的写入也会立即同步回主存，这保证了一个线程对这个变量值的修改对其他线程是立即可见的。
+**保证线程可见性**：当一个变量被声明为`volatile`之后，线程对这个变量的读取都会从主存中进行，对这个变量的写入也会立即同步回主存，这保证了一个线程对这个变量值的修改对其他线程是立即可见的。
 
 虽然`volatile`关键字确保了变量的可见性和防止指令重排，但它并不具备互斥性
 
@@ -1103,6 +1134,10 @@ MESI Cache一致性协议：Cache line 有四种状态 Modified,Exclusive,Shared
 为什么要用弱引用？
 
 防止内存泄漏，ThreadLocal对象被两个变量引用：一个是new这个对象时的强引用`ThreadLocal<String> tl = new ThreadLocal<>();`另一个是调用set方法后，存储的Entry中的key对这个对象的弱引用。当tl不再引用这个对象时，key的引用就被回收。但是在这个Map中的那条记录无法被回收，需要手动。
+
+**ThreadLocalMap是存放在Thread对象中**
+
+关于ThreadLocalMap中值的讨论 ：https://chat.openai.com/c/c2f6ab15-3a0f-45ac-8270-c9d71d5cbb21
 
 ```java
 static class Entry extends WeakReference<ThreadLocal<?>> {

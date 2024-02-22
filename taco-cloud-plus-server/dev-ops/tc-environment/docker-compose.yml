@@ -1,0 +1,34 @@
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:8.0.32
+    container_name: tc-mysql
+    restart: always
+    hostname: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    shm_size: 256m
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_USER: tacocloud
+      MYSQL_PASSWORD: 123456
+      LANG=: en_US.UTF-8
+    networks:
+      - tc-network
+    ports:
+      - "23306:3306"
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+      - ${MYSQL_DATA}:/var/lib/mysql
+    healthcheck:
+      test: ["CMD","mysqladmin","ping","-h","localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+networks:
+  tc-network:
+    name: tc-network
+    driver: bridge
