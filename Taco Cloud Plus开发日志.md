@@ -126,4 +126,125 @@ spring:
 
 5. 之后便能在`ServiceImpl`中使用单表的CRUD
 
-### 使用`spring-security`进行登录注册
+### 2.23
+
+#### 使用`spring-security`进行登录注册
+
+#### 自定义前后端认证
+
+[Spring-Security认证流程-ProcessOn](https://www.processon.com/diagraming/65d854889468bb665db86eec)
+
+**必须四件：**
+
+1. PasswordEncoder
+
+   ```java
+   @Component
+   public class MyPasswordEncoder {
+       @Bean
+       public PasswordEncoder passwordEncoder(){
+           return new BCryptPasswordEncoder();
+       }
+   }
+   ```
+
+2. UserDetailService
+
+   ```java
+   @Component
+   public class UserDetailServiceImpl implements UserDetailsService {
+   
+       private UserService userService;
+       private PasswordEncoder passwordEncoder;
+       @Autowired
+       public UserDetailServiceImpl(UserService userService,PasswordEncoder passwordEncoder){
+           this.userService = userService;
+           this.passwordEncoder = passwordEncoder;
+       }
+       @Override
+       public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+           User user = userService.getByUsername(username);
+           if(user == null){
+               throw new UsernameNotFoundException(username);
+           }
+           List<GrantedAuthority> authorities = new ArrayList<>();
+           authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+           UserDetails userDetails = new org.springframework.security.core.userdetails.User(user.getUsername(),user.getPassword(),authorities);
+           return userDetails;
+       }
+   }
+   ```
+
+   需要实现`loadUserByUsername(String username)`方法提供给内部使用，**并在此处处理用户角色**
+
+3. authenticationProvider
+
+   ```java
+   @Bean
+   public AuthenticationProvider authenticationProvider(){
+       DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+       provider.setPasswordEncoder(passwordEncoder);
+       provider.setUserDetailsService(userDetailsService);
+       return provider;
+   }
+   ```
+
+4. authenticationManager
+
+   ```java
+   @Bean
+   public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+       return configuration.getAuthenticationManager();
+   }
+   ```
+
+   
+
+**再通过SecurityFilterChain进行登录url映射**
+
+```java
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    return http.formLogin(AbstractHttpConfigurer::disable)
+        .logout(AbstractHttpConfigurer::disable)
+        .authenticationProvider(authenticationProvider())
+        .csrf(AbstractHttpConfigurer::disable)
+        .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+        .httpBasic(AbstractHttpConfigurer::disable)
+        .authorizeHttpRequests(request->request.requestMatchers(HttpMethod.POST,"/user/login","/user/register").permitAll().anyRequest().authenticated())	//只允许匿名用户使用login和register
+        .build();
+}
+```
+
+**最后在controller层中使用authenticationManager**
+
+```java
+UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(requestDTO.getUsername(),requestDTO.getPassword());
+Authentication authentication = authenticationManager.authenticate(authToken);
+```
+
+#### 注册功能
+
+```java
+@Override
+public User registerUser(RegistrationRequestDTO requestDTO) {
+    String username = requestDTO.getUsername();
+    LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+    wrapper.eq(User::getUsername,username);
+    User user = new User(IdUtil.getSnowflakeNextId(),requestDTO.getUsername(),passwordEncoder.encode(requestDTO.getPassword()));
+    if(exists(wrapper)){
+        return null;
+    }else{
+        save(user);
+    }
+    return user;
+}
+```
+
+直接判断是否存在用户名，不存在就注册。
+
+#### APIFOX自动设置request header
+
+#### 记录用户状态session
+
+发现，登录注册用的是同一个session，不正确

@@ -32,7 +32,7 @@ public class UserDetailServiceImpl implements UserDetailsService {
         }
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(user.getUsername(),passwordEncoder.encode(user.getPassword()),authorities);
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(user.getUsername(),user.getPassword(),authorities);
         return userDetails;
     }
 }
