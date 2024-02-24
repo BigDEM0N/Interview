@@ -40,7 +40,7 @@ public class UserController {
         try{
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(requestDTO.getUsername(),requestDTO.getPassword());
             Authentication authentication = authenticationManager.authenticate(authToken);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+//            SecurityContextHolder.getContext().setAuthentication(authentication);
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String jwtToken = jwtUtil.getToken(userDetails.getUsername());
             return jwtToken;
@@ -58,8 +58,13 @@ public class UserController {
     @GetMapping("/logout")
     @PreAuthorize("hasRole('USER')")
     public boolean logout(HttpServletRequest request){
-        HttpSession session = request.getSession();
-        System.out.println(session.getId());
+
         return true;
+    }
+
+    @GetMapping("/check")
+    @PreAuthorize("hasRole('USER')")
+    public String check(){
+        return "ok";
     }
 }

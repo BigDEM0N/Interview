@@ -47,13 +47,6 @@ public class WebSecurityConfig{
     }
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        return http.authorizeHttpRequests(auth->auth.anyRequest().authenticated())
-//                .formLogin(formLogin->formLogin.loginPage("/login").usernameParameter("username").passwordParameter("password").loginProcessingUrl("/user/login")
-//                        .defaultSuccessUrl("/home").failureUrl("/login?error=true"))
-//                .logout(logout->logout.logoutUrl("/logout").permitAll())
-//                .sessionManagement(sessionManagement->sessionManagement.invalidSessionUrl("/login").maximumSessions(1).maxSessionsPreventsLogin(true))
-//                .csrf(csrf->csrf.disable())
-//                .build();
         return http.formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .authenticationProvider(authenticationProvider())
