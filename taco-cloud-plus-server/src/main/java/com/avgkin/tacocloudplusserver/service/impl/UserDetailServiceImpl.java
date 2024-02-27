@@ -3,6 +3,7 @@ package com.avgkin.tacocloudplusserver.service.impl;
 import com.avgkin.tacocloudplusserver.entity.po.User;
 import com.avgkin.tacocloudplusserver.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,4 +36,5 @@ public class UserDetailServiceImpl implements UserDetailsService {
         UserDetails userDetails = new org.springframework.security.core.userdetails.User(user.getUsername(),user.getPassword(),authorities);
         return userDetails;
     }
+
 }

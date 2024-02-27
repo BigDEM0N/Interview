@@ -1,4 +1,4 @@
-## [面试准备](http://localhost:9000/oauth2/authorize?repose_type=code&client_id=taco-admin-client&redirect_uri=http://localhost:9000/login/oauth2/code/taco-admin-client&scope=writeIngredients+deleteIngredients)
+## 面试准备
 
 ![image-20240220213744782](notepics/image-20240220213744782.png)
 
@@ -410,7 +410,34 @@ Calendar：
 
 ##### File：
 
-##### IO流：
+##### IO流
+
+[IO]: D:\._Work\Code\LearningDemo\Interview\导图\IO流的分类.xmind	"IO流"
+
+编码：在**GBK**中，英文对应一个字节，并以二进制0开头，中文对应两个字节并以二级制1开头
+
+**UTF-8（Unicode字符集的一种编码方式）：**用1~4个字节保存
+
+1. ASCII用一个字节
+
+2. 拉丁字母用两个字节
+
+3. 中文用三个字节
+
+   ![image-20240226170359930](notepics/image-20240226170359930.png)
+
+Java中编码和解码方式:
+
+```java
+//编码
+String string = "xxxx";
+string.getBytes("UTF-8");
+
+//解码
+String string = new String(byte[] bytes,"UTF-8");
+```
+
+
 
 #### 工具类：
 
@@ -938,6 +965,224 @@ JDK1.8之后 数据结构：synchronized+CAS+Node+红黑树，Node的val和next�
 
 #### 网络编程（java.net）：
 
+##### 网络通信的要素：
+
+1. IP和端口号
+2. 网络通信协议
+
+**TCP/IP参考模型：**
+
+| OSI七层网络模型         | TCP/IP四层概念模型 | 对应网络协议                       |
+| ----------------------- | ------------------ | ---------------------------------- |
+| 应用层（Application）   | 应用层             | HTTP,TFTP,FTP,NFS,WAIS,SMTP        |
+| 表示层（Presentation）  | ^                  | Telnet,Rlogin,SNMP,Gopher          |
+| 会话层（Session）       | ^                  | SMTP,DNS                           |
+| 传输层（Transport）     | 传输层             | TCP,UPD                            |
+| 网络层（Network）       | 网络层             | IP,ICMP,ARP,RARP,AKP,UCCP          |
+| 数据链路层（Data Link） | 数据链路层         | FDDI,Ethernet,Arpanet,PDN,SLIP,PPP |
+| 物理层（Physical）      | ^                  | IEE                                |
+
+1. 如何定位到网络上的一台或多台主机？
+
+   ```powershell
+   ping www.baidu.com
+   ```
+
+2. 查看本机ip
+
+   ```powershell
+   ipconfig
+   ```
+
+   
+
+##### IP地址：
+
+IP地址的分类：
+
+1. IPV4 / IPV6：
+
+   - IPV4：10.250.25.42 总共四个字节，每个0~255，共42亿
+   - IPV6： 128位，8个无符号整数，每个数16位
+
+2. 公网&私网
+
+   - ABCD类地址：
+
+     A 0~127
+
+     B 128~191
+
+     C 192~223
+
+     D 224~239
+
+对象`java.net.InetAddress`对应IP地址的对象；
+
+```java
+InetAddress inetAddress = InetAddress.getByName("127.0.0.1");
+```
+
+##### 端口
+
+- 公有端口0~1023
+  1. HTTP：80
+  2. HTTPS：443
+  3. FTP：21
+  4. Telent：23
+-  程序注册端口 1024~49151
+- 动态、私有：49152~65535
+
+##### 通信协议：
+
+TCP/IP协议簇：
+
+重要：
+
+​	TCP：用户传输协议
+
+​	UDP：用户数据报协议
+
+##### TCP实现：
+
+```java
+//client
+public class TcpClient{
+    public static void main(String[] args){
+        Socket socket = null;
+        OutputStream os = null;
+        try{
+            //建立服务器的ip和端口号
+            InetAddress serverIP = InetAddress.getByName("127.0.0.1");
+            int port = 9999;
+            //建立Socket连接
+            socket  = new Socket(serverIP,port);
+            //发送io流
+            os = socket.getOutputStream();
+            os.write("xxxxxx".getBytes());
+            
+        }catch(Exception e){
+            e.printStackTrace();
+        }finally{
+            //关闭资源
+            try{
+                os.close();
+            	socket.close();
+            }catch(IOException e2){
+                e.printStackTrace();
+            }
+        }
+    }
+}
+```
+
+```java
+//Server
+public class TcpServer{
+    public static void main(String[] args){
+        ServerSocket serverSocket = null;
+        Socket socket = null;
+        InputStream is = null;
+        ByteArrayOutputStream baos = null;
+        try{
+            //建立对本机端口的监听
+            serverSocket = new ServerSocket(9999);
+            //等待客户端连接
+            socket = serverSocket.accept();
+            //读取消息
+            is = socket.getInputStream();
+            /*//buffer读取
+            	byte[] buffer = new byte[1024];
+            	int len;
+            	while(len = is.read(buffer)!=-1){
+            		String msg = new String(buffer,0,len);
+            		System.out.println(msg);
+            	}
+            */
+            //管道流
+            baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int len;
+            while(len = is.read(buffer)!=-1){
+            	baos.write(buffer,0,len);	
+            }
+ 			System.out.println(baos.toString());
+        }catch(IOException e){
+            e.printStackTrace();
+        }finally{
+            try{
+                baos.close();
+            	is.close();
+            	socket.close();
+            	serverSocket.close();
+            }catch(IOException e2){
+                e.printStackTrace();
+            }
+        }
+    }
+}
+```
+
+**文件上传：**
+
+```java
+FileInputStream fis = new FileInputStream(new File("/xxx/xxx.jpg"));
+FileOutputStream fos = new FileOutputStream(new File("/xxx.jpg"));
+```
+
+**UDP实现：**
+
+```java
+//发送
+public class UdpClient{
+    public static void main(String[] args){
+        //建立一个Socket
+        DatagramSocket socket = new DatagramSocket();
+        String msg = "xxxx";
+        //发送给地址
+        InetAddress localhost = InetAddress.getByName("localhost");
+        int port = 9090;
+        //建个包
+        DatagramPacket packet = new DatagramPacket(msg.getBytes(),0,msg.getBytes().length,localhost,port);
+        socket.send(packed);
+        socket.close();
+    }
+}
+```
+
+```java
+//获取
+
+//开放端口
+DatagramSocket socket  = new DatagramSocket(9090);
+//接受数据包
+byte[] buffer = new byte[1024];
+DatagramPacket packet = new DatagramPacket(buffer,o,buffer.lenth);
+socket.receive(packet);//阻塞接受
+socket.close();
+```
+
+**多线程发送**
+
+```java
+//TalkSend
+```
+
+##### URL（）
+
+同一资源定位符：定位互联网上的某一个资源
+
+```java
+URL url = new URL("http://xxxxxxxxx");
+// 连接
+HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+InputStream is = urlConnection.getInputStream();
+
+urlConnection.disConnect();
+```
+
+
+
 ##### TCP（Transmission Control Protocol）：
 
 基于字节流
@@ -1363,7 +1608,7 @@ public @interface Repository {
 ###### 1. 懒汉式（线程不安全）
 
 ```
-javaCopy codepublic class Singleton {
+public class Singleton {
     private static Singleton instance;
     private Singleton() {}
     public static Singleton getInstance() {
@@ -1512,9 +1757,234 @@ public static void main(String[] args) {
     }
 ```
 
+##### Spring框架：
+
+IOC：Inversion of Control 控制反转
+
+DI：Dependency Injection 依赖注入
+
+**实现IOC的几种方法：**
+
+1. `xml`
+
+   ```xml
+   <bean class="全限定名" name="beanName">
+   	<property name="xxx" ref="anotherBeanName"></property>
+   </bean>
+   
+   <bean class="全限定名" name = "anotherBeanName"></bean>
+   ```
+
+   ```java
+   //从spring 容器中获取UserService
+   ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("xmlPath");
+   ```
+
+2. 注解
+
+   在类上加`@Component`注解
+
+   并且告诉Spring注解所在包在哪`<context:component-scan base-package ="xxx"></context:component-scan>`
+
+   通过`@Autowired`注入
+
+3. `javaConfig`
+
+   ```java
+   //用来代替xml
+   @Configuration
+   @ComponentScan("packageName")
+   public class SpringConfig{
+   }
+   ```
+
+   ```java
+   //获取容器
+   AnnotationConfigApplicationContext(SpringConfig.class);
+   
+   ```
+
+##### Bean
+
+什么是Bean？被Spring所管理的对象。
+
+###### **注册Bean的方法：**
+
+@Conponent-类	@Bean-方法	@Import(xxxx.class)
+
+**@Conponent和@Bean的区别：**
+
+@Conponent是放在类上面的，@Bean放在方法方面，并且应该是配置类里面的方法。如果该方法在其他类中，会被当成普通方法。
+
+**@Import(xxxx.class)**：
+
+必须写在类上面，且类为一个bean。会把xxxx.class注册为bean
+
+**`ImportSelector`**
+
+```java
+//ImportSelector注册指定类
+public class MyImportSelector implements ImportSelector{
+    @Override
+    public String[] selectImports(AnnotationMetadata importingClassMetadata){
+        return new String[]{
+            "com.xxx.package.xxxService",
+            "全限定名"
+        };
+    }
+}
+
+@Configuration
+@Import(MyImportSelector.class)
+```
+
+**`ImportBeanDefinitionRegistrar`**
+
+```java
+public class MyImportBeanDefinitonRegistrar implements ImportBeanDefinitionRegistrar {
+    @Override
+    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+		RootBeanDefinition definition = new RootBeanDefinition();
+        definition.setBeanClassName("完全限定名");
+        registry.registerBeanDefinition("beanName",definition);
+    }
+}
+```
+
+###### Bean的实例化
+
+1. 默认使用无参构造函数，如果只有一个有参则可以调用，如果有参有多个，则报错。**可以使用@Autowired指定构造函数**
+
+2. @Bean 使用实例工厂方法
+
+3. FactoryBean
+
+   需要一个bean实现FactoryBean
+
+   ```java
+   @Service
+   public class OrderService implements FactoryBean{
+       @Override
+       public Object getObject() throws Exception{
+           return new UserService();
+       }
+       @Override
+       publci Class<?> getObjectType(){
+           return UserService.class;
+       }
+   }
+   
+   ```
+
+###### 自动装配
+
+1. @Autowired 首先通过类型查找，之后通过名字查找。如果有同一类型有多个，但通过名字无法确定就会报错“找不到唯一的Bean”，**可以通过在类上加`@Primary`注解明确找不到时用哪个**。或者在注入时通过`@Qualifier`指定名称
+2. @Inject
+3. @Resource
+
+###### @Value
+
+1. 直接值`@Value("12")`
+
+2. 对外部属性文件的引用
+
+   ```java
+   @PropertySource("xxx.properties")
+   
+   @Value(${xxx.xxx})
+   
+   //找不到可以指定默认值
+   @Value(${xxx.xxx:default})
+   
+   //spel 表达式,对复杂类型赋值
+   @Value("#{{}'xx':'xx'}}")
+   ```
+
+###### @Order(9)
+
+@Order注解放到将要创建的Bean上可以改变注入的顺序。
+
+###### DependsOn("beanName")
+
+更改创建顺序
+
+###### @Lazy注解
+
+在容器加载的时候不会创建，在注入的时候或者获取的时候创建
+
+###### @Condition
+
+如何使用？
+
+1. 根据依赖决定连接哪个数据库
+
+   ```java
+   
+   ```
+
+根据条件判断是否注入
+
+```java
+@Bean
+@Conditional(MyCondition.class)
 
 
-##### `@Bean`注解是如何生成一个bean的？
+
+public class MyCondition implements Condition{
+    @Override
+    public boolean matches(ConditionContxt context,AnnotatedTypeMetadata metadata){
+        return ture;
+    }
+}
+```
+
+
+
+###### @Scope Bean的作用域
+
+@Scope("singleton") 单例，@Scope("prototype") 每次访问都创建， `request`、`session` 和 `application`.
+
+**单例Bean会不会有线程安全问题：**
+
+有，但是可以通过ThreadLocal或者不在Bean中存储共享变量解决。
+
+##### Bean的生命周期：
+
+1. 配置@Component...
+2. 加载Spring容器
+3. 实例化（new xxxBean()）
+4. DI 依赖注入
+5. **初始化** 回调函数
+6. 最终放入Ioc容器
+7. getBean
+8. spring容器关闭，**bean销毁** 回调函数
+
+**初始化回调函数：**
+
+```java
+@Component(initMethod = "init2")
+public class xxxService implements InitializingBean{
+    @Override
+    public void afterPropertiesSet() throw Exception{
+        //xxxxxx初始化操作
+    }
+    
+    @PostConstruct
+    public void init(){
+        //xxxxx初始化操作
+    }
+    
+    public void init2({
+        //xxxxxx
+    })
+}
+
+
+```
+
+销毁回调函数类似。
+
+##### 循环依赖的解决：
 
 ##### AOP（面向切面编程）：
 
@@ -1530,12 +2000,162 @@ OOP，根据业务创建模型，基于模型展开业务开发。
 4. 引入（Introduction）：通知仅代表代码逻辑，如果存在有共性的成员变量或者成员方法，将共性功能的成员加入，引入是在编译期或类加载期完成的;
 5. 目标对象（TargetObject）：缺少被抽取代码的对象
 6. AOP代理（AOP Proxy）：代理对象把通知植入到目标对象中
-7. 切面：
+7. 切面（Aspect）：增强的代码放入的那个类就叫切面类
+7. 顾问（Advisor）：在源码中，advice和PointCut的结合
 8. 织入:
 
-```java
+###### 在Springboot中使用aop
 
+1. 加入依赖：
+
+   ```xml
+   <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-aop</artifactId>
+   </dependency>
+   ```
+
+   aspectj和spring-aop
+
+2. 实现切面，提取与业务逻辑无关的代码（例如日志）
+
+   ```java
+   //新建切面类
+   @Aspect
+   @Component
+   public class LogAspect {
+       //around 环绕通知
+       @Around("execution(* com.avgkin.tacocloudplusserver.service.impl.UserServiceImpl.*(..))")//通过切点表达式确定切入位置
+       public Object log(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+           System.out.println("log before");
+           return proceedingJoinPoint.proceed();
+       }
+   }
+   ```
+
+   **@EnableAspectJAutoProxy**
+
+   springboot通过启动类启用这个注解，在Spring中需要手动加上
+
+###### 其他通知：
+
+1. 前置通知：
+
+   ```java
+   @Before("切点表达式")
+   public xxx(){
+       
+   }
+   ```
+
+2. 后置通知：`@After`无论有没有出现异常都会执行
+
+3. 返回通知：`@AfterReturning(value = "切点表达式",returning = "变量名")`可以获取返回值，在后置通知之前
+
+4. 异常通知：`@AfterThrowing(,throwing = "exception")`
+
+执行顺序：
+
+- 正常：前置-->目标方法-->返回通知-->后置通知
+- 异常：前置-->目标方法-->异常通知-->后置通知
+
+**切点表达式的写法：**
+
+```java
+//切点表达式的抽取
+@Pointcut("execution(public int xxx.xxxx.xxxx.*(..))")
+public void myPoint(){}
+
+@Before("myPoint()")
 ```
+
+1. `execution`定位到方法
+
+   ```
+   execution(访问修饰符（可以省略） 返回值 全限定名(方法参数) )
+   ```
+
+2.  `within(包名.类名)`
+
+3. `@annotation(注解的名称)`
+
+###### Spring AOP底层原理
+
+**代理模式**：
+
+是一种设计模式：
+
+1. 使用代理对象来增强目标对象，这样就可以在不修改原目标对象的前提下，提供额外的功能操作，扩展目标对象的功能。
+2. 将核心业务代码和非核心的公共代码分离解耦，提高代码的可维护性。
+
+**动态代理**：实现了AOP的类，Spring会进行动态代理，对缓存中的bean进行替换。
+
+动态代理由程序运行时动态创建的类
+
+**静态代理**：由程序员自己创建
+
+**JDK动态代理：**
+
+```java
+Proxy.newProxyInstance(ClassLoader loader,Class<?>[] interfaces,InvocationHandler handler);
+
+public MyHandler implements InvocationHandler{
+    Object target;//引用目标对象
+    public MyHandler(Object target){
+        this.target = target;
+    }
+    
+    @Override
+    public Object invoke(Object proxy, Method method,Object[] args)throws Throwable{
+        //这里写增强代码
+        log.xxxx
+        //再执行目标方法
+        Object returnValue = method.invoke(target,args);
+        return returnValue;
+    }
+}
+```
+
+1. loader：类加载器
+2. interfaces：被代理类实现的一些接口：**被代理的类必须实现接口**  为什么？
+3. h：实现了InvocationHandler接口的对象
+
+**CGLIB动态代理：**
+
+JDK动态代理必须要实现接口，但是cglib不需要
+
+```java
+Enhancer enhancer = new Enhancer();
+//设置被代理的类
+enhancer.setSuperclass(UserService.class);
+//设置处理类
+enhancer.setCallback(new MyCallback(new UserService()));
+//生成的代理类，继承自UserService
+UserService userService = (UserService) enhancer.create();
+Object target;
+public MyCallback(Object target){
+    this.target = target;
+}
+public class MyCallback implements MethodInterceptor{
+    @Override
+    public Object intercept(Object obj,Method method,Object[] args,MethodProxy proxy){
+        //增强代码
+        //目标对象
+        //method.invoke()
+        proxy.invoke(target,args);
+    }
+}
+```
+
+**JDK动态代理和CGLIB动态代理的区别：**
+
+1. JDK动态代理只能代理**实现了接口的类**
+
+   CGLIB动态代理是继承了目标类，目标类不能标记为final
+
+   在Spring中默认使用JDK动态代理，判断目标类是否实现了接口，如果没有就使用CGLIB。
+
+   SpringBoot中默认使用CGLIB
 
 ##### Spring事务
 
@@ -1544,6 +2164,8 @@ OOP，根据业务创建模型，基于模型展开业务开发。
 ##### Spring三级缓存：
 
 #### Spring Security & Oauth2 & Shiro
+
+[Spring Security流程]: https://www.processon.com/diagraming/65d854889468bb665db86eec
 
 ##### 基本概念：
 
@@ -1795,6 +2417,12 @@ ${expression}
 监听器监听request对象或者response对象`extends ServletRequestListener`
 
 ![image-20240218190116031](notepics/image-20240218190116031.png)
+
+##### 过滤器和监听器的使用：
+
+过滤器是在sevlet层面的，拦截器属于web框架曾麦呢
+
+##### 拦截器：
 
 #### Ajax：
 
@@ -2223,19 +2851,30 @@ driverClassName=com.mysql.jdbc.Driver
 
 #### 消息队列 
 
-#### 分布式
+##### RabbitMQ
+
+##### Kafka
 
 #### RPC
 
-#### 高并发
-
-#### 高可用
+##### Dubbo
 
 #### Netty
 
-#### Dubbo
-
 #### Zookeeper
+
+#### Redis
+
+##### Springboot整合Redis缓存
+
+两种方式
+
+1. 注解方式
+2. RedisTemplate手动
+
+
+
+#### nacos
 
 #### 无感刷新
 

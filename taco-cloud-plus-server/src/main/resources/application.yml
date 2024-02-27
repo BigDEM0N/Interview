@@ -5,4 +5,23 @@ spring:
     url: jdbc:mysql://localhost:23306/tacocloud
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
+logging:
+  file:
+    path: ~/tacocloud/log
+  logback:
+    rollingpolicy:
+      max-history: 7
 
+redis:
+  config:
+    host: 127.0.0.1
+    port: 26379
+    pool-size: 10
+    min-idle-size: 5
+    idle-timeout: 30000
+    connect-timeout: 5000
+    retry-attempts: 3
+    retry-interval: 1000
+    ping-interval: 60000
+    keep-alive: true
+    password: 123456

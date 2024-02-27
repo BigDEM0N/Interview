@@ -243,8 +243,308 @@ public User registerUser(RegistrationRequestDTO requestDTO) {
 
 直接判断是否存在用户名，不存在就注册。
 
+#### 授权流程
+
+1. 增加Jwt工具类
+
+   ```java
+   @Component
+   @Slf4j
+   public class JwtUtil {
+   
+       //常量
+       public static final long EXPIRE = 1000 * 60 * 60 * 4; //token过期时间,4个小时
+       public static final String APP_SECRET = "ukc8BDbRigUDaY6pZFfWus2jZWLPHO"; //秘钥
+   
+       //生成token字符串的方法
+       public String getToken(String userName) {
+           return Jwts.builder()
+                   .setHeaderParam("typ", "JWT")
+                   .setHeaderParam("alg", "HS256")
+                   .setSubject("user")
+                   .setIssuedAt(new Date())
+                   .setExpiration(new Date(System.currentTimeMillis() + EXPIRE))
+                   .claim("userName", userName)//设置token主体部分 ，存储用户信息
+                   .signWith(SignatureAlgorithm.HS256, APP_SECRET)
+                   .compact();
+       }
+   
+       //验证token字符串是否是有效的  包括验证是否过期
+       public boolean checkToken(String jwtToken) {
+           if (jwtToken == null || jwtToken.isEmpty()) {
+               log.error("Jwt is empty");
+               return false;
+           }
+           try {
+               Jws<Claims> claims = Jwts.parser().setSigningKey(APP_SECRET).parseClaimsJws(jwtToken);
+               Claims body = claims.getBody();
+               if (body.getExpiration().after(new Date(System.currentTimeMillis()))) {
+                   return true;
+               } else
+                   return false;
+           } catch (Exception e) {
+               log.error(e.getMessage());
+               return false;
+           }
+       }
+   
+       public Claims getTokenBody(String jwtToken) {
+           if (jwtToken == null || jwtToken.isEmpty()) {
+               log.error("Jwt is empty");
+               return null;
+           }
+           try {
+               return Jwts.parser().setSigningKey(APP_SECRET).parseClaimsJws(jwtToken).getBody();
+           } catch (Exception e) {
+               log.error(e.getMessage());
+               return null;
+           }
+       }
+   }
+   ```
+
+2. 增加自定义JwtFilter，继承自OncePerRequestFilter，把获取的权限写到SecurityContext中
+
+   ```java
+   @Component
+   @Slf4j
+   public class JwtFilter extends OncePerRequestFilter {
+   
+       @Autowired
+       JwtUtil jwtUtil;
+   
+       @Autowired
+       UserDetailsService userDetailsService;
+   
+       @Override
+       protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException{
+           String jwtToken = request.getHeader("token");//从请求头中获取token
+           if (jwtToken != null && !jwtToken.isEmpty() && jwtUtil.checkToken(jwtToken)){
+               try {//token可用
+                   Claims claims = jwtUtil.getTokenBody(jwtToken);
+                   String userName = (String) claims.get("userName");
+                   //todo:这里是从数据库取，之后改成从redis
+                   UserDetails user = userDetailsService.loadUserByUsername(userName);
+                   if (user != null){
+                       UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                       SecurityContextHolder.getContext().setAuthentication(auth);
+                   }
+               } catch (Exception e){
+                   log.error(e.getMessage());
+               }
+           }else {
+               log.warn("token is null or empty or out of time, probably user is not log in !");
+           }
+           filterChain.doFilter(request, response);//继续过滤
+       }
+   }
+   ```
+
+3. 把filter加入到HttpSecurity对象中，让spring把它注册到tomcat的filterchain当中。
+
 #### APIFOX自动设置request header
 
-#### 记录用户状态session
 
-发现，登录注册用的是同一个session，不正确
+
+### 2.27
+
+#### 设置全局异常处理
+
+新增类
+
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler{
+    @ExceptionHandler(Exception.class)
+    public String handleCommonException(Exceptioin e){
+        return "error";
+    }
+}
+```
+
+这两个注解的组合可以捕获spring应用里的异常，但是经过实测，filter里的异常属于Servlet没法被这个捕获。
+
+
+
+#### 设置全局统一返回参数CommonResult
+
+在包result中
+
+#### 设置登出
+
+计划用redis实现
+
+
+
+#### 通过SpringAOP进行log记录
+
+```java
+@Aspect
+@Component
+@Slf4j
+public class LogAspect {
+    @Before("execution(* com.avgkin.tacocloudplusserver.controller..*(..))")
+    public void log(JoinPoint joinPoint){
+        log.info("请求传入："+ Arrays.toString(joinPoint.getArgs()));
+    }
+    @AfterReturning(value = "execution(* com.avgkin.tacocloudplusserver.controller..*(..))",returning = "returnValue")
+    public Object afterLog(JoinPoint joinPoint,Object returnValue){
+        log.info("返回响应:"+ returnValue.toString());
+        return returnValue;
+    }
+}
+```
+
+
+
+#### 整合redis缓存
+
+1. 配置redis docker启动脚本：
+
+   ```dockerfile
+   services:
+     redis:
+       image: redis:3.0
+       container_name: tc-redis
+       restart: always
+       ports:
+         - "26379:6379"
+       volumes:
+         - ${REDIS_DATA}:/data
+         - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+       command: ["redis-server","/usr/local/etc/redis/redis.conf"]
+       networks:
+         - tc-network
+       healthcheck:
+         test: [ "CMD", "redis-cli", "ping" ]
+         interval: 10s
+         timeout: 5s
+         retries: 3
+   ```
+
+2. 建立属性类
+
+   ```java
+   @Data
+   @ConfigurationProperties(prefix = "redis.config")
+   public class RedisConfigProperties {
+       /** host:ip */
+       private String host;
+       /** 端口 */
+       private int port;
+       /** 账密 */
+       private String password;
+       /** 设置连接池的大小，默认为64 */
+       private int poolSize = 64;
+       /** 设置连接池的最小空闲连接数，默认为10 */
+       private int minIdleSize = 10;
+       /** 设置连接的最大空闲时间（单位：毫秒），超过该时间的空闲连接将被关闭，默认为10000 */
+       private int idleTimeout = 10000;
+       /** 设置连接超时时间（单位：毫秒），默认为10000 */
+       private int connectTimeout = 10000;
+       /** 设置连接重试次数，默认为3 */
+       private int retryAttempts = 3;
+       /** 设置连接重试的间隔时间（单位：毫秒），默认为1000 */
+       private int retryInterval = 1000;
+       /** 设置定期检查连接是否可用的时间间隔（单位：毫秒），默认为0，表示不进行定期检查 */
+       private int pingInterval = 0;
+       /** 设置是否保持长连接，默认为true */
+       private boolean keepAlive = true;
+   }
+   ```
+
+3. 引入依赖redission
+
+   ```xml
+   <dependency>
+       <groupId>org.redisson</groupId>
+       <artifactId>redisson-spring-boot-starter</artifactId>
+       <version>3.23.4</version>
+   </dependency>
+   ```
+
+   
+
+4. 通过Configuration建立redis客户端实例
+
+   ```java
+   @Configuration
+   @EnableConfigurationProperties(RedisConfigProperties.class)
+   public class RedisConfig {
+       @Bean
+       public RedissonClient redissonClient(ConfigurableApplicationContext applicationContext,RedisConfigProperties properties){
+           Config config = new Config();
+           config.useSingleServer()
+                   .setAddress("redis://" + properties.getHost() + ":" + properties.getPort())
+                   .setPassword(properties.getPassword())
+                   .setConnectionPoolSize(properties.getPoolSize())
+                   .setConnectionMinimumIdleSize(properties.getMinIdleSize())
+                   .setIdleConnectionTimeout(properties.getIdleTimeout())
+                   .setConnectTimeout(properties.getConnectTimeout())
+                   .setRetryAttempts(properties.getRetryAttempts())
+                   .setRetryInterval(properties.getRetryInterval())
+                   .setPingConnectionInterval(properties.getPingInterval())
+                   .setKeepAlive(properties.isKeepAlive())
+                   .setDatabase(0)
+           ;
+           return Redisson.create(config);
+       }
+   }
+   ```
+
+5. 定义CacheManager，通过CacheManager启用Caching
+
+   ```java
+   @Configuration
+   @EnableCaching
+   public class CacheConfig {
+       @Bean
+       public CacheManager cacheManager(RedissonClient redissonClient) {
+           return new RedissonSpringCacheManager(redissonClient);
+       }
+   }
+   ```
+
+6. 设置缓存过期时间？？？
+
+#### 引入RedisComander
+
+```java
+  redis-commander:
+    image: spryker/redis-commander:0.8.0
+    container_name: tc-redis-commander
+    hostname: redis-commander
+    restart: always
+    ports:
+      - "18081:8081"
+    environment:
+      - TZ=Asia/Shanghai
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=123456
+    networks:
+      - tc-network
+    depends_on:
+      redis:
+        condition: service_healthy
+```
+
+##### 构建自定义redis方法类用于放入认证结果
+
+```java
+@Component
+public class RedisUtil {
+    @Autowired
+    private RedissonClient redissonClient;
+    public <K,V> boolean putKv(String bucketName,K key,V value){
+        if(key!=null&&value!=null&&bucketName!=null){
+            RMap<K,V> map = redissonClient.getMap(bucketName);
+            map.put(key,value);
+            return true;
+        }else{
+            throw new RuntimeException();
+        }
+    }
+}
+```
+

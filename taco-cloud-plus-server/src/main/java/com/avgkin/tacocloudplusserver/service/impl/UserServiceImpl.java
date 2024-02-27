@@ -3,10 +3,12 @@ package com.avgkin.tacocloudplusserver.service.impl;
 import cn.hutool.core.util.IdUtil;
 import com.avgkin.tacocloudplusserver.entity.dto.RegistrationRequestDTO;
 import com.avgkin.tacocloudplusserver.entity.po.User;
-import com.avgkin.tacocloudplusserver.entity.po.mappers.UserMapper;
+import com.avgkin.tacocloudplusserver.dao.mappers.UserMapper;
 import com.avgkin.tacocloudplusserver.service.UserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,10 +33,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         wrapper.eq(User::getUsername,username);
         User user = new User(IdUtil.getSnowflakeNextId(),requestDTO.getUsername(),passwordEncoder.encode(requestDTO.getPassword()));
         if(exists(wrapper)){
-            return null;
+            throw new RuntimeException();
         }else{
             save(user);
         }
         return user;
+    }
+
+    @Override
+    public String check() {
+        throw new RuntimeException();
     }
 }

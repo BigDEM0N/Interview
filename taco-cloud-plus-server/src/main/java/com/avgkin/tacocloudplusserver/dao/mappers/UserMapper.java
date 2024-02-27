@@ -1,4 +1,4 @@
-package com.avgkin.tacocloudplusserver.entity.po.mappers;
+package com.avgkin.tacocloudplusserver.dao.mappers;
 
 import com.avgkin.tacocloudplusserver.entity.po.User;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
